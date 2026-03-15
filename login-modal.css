@@ -34,7 +34,8 @@
   background-position: center;
   width: 90%;
   max-width: 1000px;
-  height: 600px;
+  height: auto;
+  min-height: 600px;
   border-radius: 0px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -86,7 +87,7 @@
 
 .login-modal-right {
   flex: 0 0 auto;
-  width:500px;
+  width: 500px;
   min-height: auto;
   padding: 50px 35px;
   display: flex;
@@ -96,8 +97,13 @@
   background: linear-gradient(135deg, #C99A6A 0%, #D4A574 50%, #E5B580 100%);
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  max-height: 65vh;
+  max-height: 90vh;
   overflow-y: auto;
+  scrollbar-width: none; /* hides scrollbar on Firefox */
+}
+
+.login-modal-right::-webkit-scrollbar {
+  display: none; /* hides scrollbar on Chrome/Safari */
 }
 
 @media (max-width: 767px) {
