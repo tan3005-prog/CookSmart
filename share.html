@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CookSmart - Share Recipe</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="login-modal.css">
+  <script src="script.js" defer></script>
+  <script src="login-modal.js" defer></script>
+</head>
+<body class="bg-share">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="navbar-brand" target="_blank" rel="noopener noreferrer">🍳 CookSmart</a>
+      <ul class="navbar-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="discover.html" onclick="return LoginModal.requireLogin(event)">Discover</a></li>
+        <li><a href="trending.html" onclick="return LoginModal.requireLogin(event)">Trending</a></li>
+        <li><a href="about.html" onclick="return LoginModal.requireLogin(event)">About</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  
