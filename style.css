@@ -306,6 +306,111 @@ header, main, .container, footer{position:relative;z-index:1}
   }
 }
 
+/* Floating Translate Button */
+.floating-translate-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hide Google Translate top bar */
+
+/* Minimal Google Translate bar: show only logo and language dropdown */
+body .goog-te-banner-frame.skiptranslate,
+body .goog-te-banner-frame {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+body .goog-te-banner-frame .goog-te-banner-content,
+body .goog-te-banner-frame .goog-te-banner-content * {
+  font-size: 0 !important;
+}
+body .goog-te-banner-frame .goog-te-banner-content .goog-logo,
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-combo {
+  font-size: 16px !important;
+  display: inline-block !important;
+}
+body .goog-te-banner-frame .goog-te-banner-content .goog-logo {
+  margin-right: 12px !important;
+}
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-combo {
+  margin-left: 0 !important;
+}
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-banner-buttons,
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-banner-close,
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-banner-message,
+body .goog-te-banner-frame .goog-te-banner-content .goog-te-banner-options {
+  display: none !important;
+}
+body { top: 40px !important; }
+
+.floating-translate-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+}
+
+.floating-translate-btn:active {
+  transform: scale(0.95);
+}
+
+/* Google Translate Widget Styling */
+#google_translate_element {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  z-index: 999;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  max-width: 300px;
+}
+
+#google_translate_element .goog-te-gadget {
+  font-family: inherit !important;
+}
+
+#google_translate_element .goog-te-combo {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  color: #333 !important;
+}
+
+/* Mobile adjustments for floating button */
+@media (max-width: 768px) {
+  .floating-translate-btn {
+    bottom: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  #google_translate_element {
+    bottom: 75px;
+    right: 15px;
+    max-width: 250px;
+  }
+}
+
 
 
 

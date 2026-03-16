@@ -7,6 +7,58 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="login-modal.css">
   <script src="login-modal.js" defer></script>
+
+  <!-- Custom Language Selector -->
+  <style>
+    .floating-lang-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .lang-popup {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 10px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+    }
+    .lang-popup button {
+      margin: 5px 0;
+      padding: 8px 16px;
+      border: none;
+      background: #764ba2;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .lang-popup button:hover {
+      background: #667eea;
+    }
+  </style>
+  <script>
+    function toggleLangPopup() {
+      var popup = document.getElementById('lang-popup');
+      popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+    }
+    function setLanguage(lang) {
+      var url = 'https://translate.google.com/translate?hl=' + lang + '&sl=auto&tl=' + lang + '&u=' + window.location.href;
+      window.location.href = url;
+    }
+  </script>
   <style>
 
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
@@ -365,7 +417,7 @@
             </div>
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="member-avatar" style="background: none; padding: 0; overflow: hidden;">
+                  <div class="member-avatar" style="background: none; padding: 0; overflow: hidden;">
                         <img src="images/tanvi.jpeg" alt="Tanvi Sonune" style="width: 130px; height: 130px; object-fit: cover; object-position: center top; border-radius: 50%; display: block;" />
                     </div>
                     <h3>Tanvi Sonune</h3>
@@ -380,7 +432,7 @@
                             <div class="contact-icon">✉</div>
                             <span>Email</span>
                         </a>
-                        <a href="https://instagram.com/yourprofile" class="contact-link" target="_blank">
+                        <a href="https://www.instagram.com/tanvi_s30" class="contact-link" target="_blank">
                             <div class="contact-icon">💬</div>
                             <span>Instagram</span>
                         </a>
@@ -394,7 +446,7 @@
                     <div class="role">Software Engineer</div>
                     <button class="contact-btn" onclick="toggleContacts('contact2')">Contact</button>
                     <div id="contact2" class="contact-links">
-                        <a href="https://linkedin.com/in/akshata-biradar" class="contact-link" target="_blank">
+                        <a href="https://linkedin.com/in/akshata-biradar-53a82327b" class="contact-link" target="_blank">
                             <div class="contact-icon">💼</div>
                             <span>LinkedIn</span>
                         </a>
@@ -402,7 +454,7 @@
                             <div class="contact-icon">✉</div>
                             <span>Email</span>
                         </a>
-                        <a href="https://instagram.com/yourprofile" class="contact-link" target="_blank">
+                        <a href="https://instagram.com/aksh_ata2305" class="contact-link" target="_blank">
                             <div class="contact-icon">💬</div>
                             <span>Instagram</span>
                         </a>
@@ -422,7 +474,7 @@
                             <div class="contact-icon">✉</div>
                             <span>Email</span>
                         </a>
-                        <a href="https://instagram.com/yourprofile" class="contact-link" target="_blank">
+                        <a href="https://instagram.com/pranjal_5905" class="contact-link" target="_blank">
                             <div class="contact-icon">💬</div>
                             <span>Instagram</span>
                         </a>
@@ -436,7 +488,7 @@
                     <div class="role">Software Engineer</div>
                     <button class="contact-btn" onclick="toggleContacts('contact1')">Contact</button>
                     <div id="contact1" class="contact-links">
-                        <a href="www.linkedin.com/in/ketan-agrawal-2a4a4537b" class="contact-link" target="_blank">
+                        <a href="https://linkedin.com/in/ketan-agrawal-2a4a4537b" class="contact-link" target="_blank">
                             <div class="contact-icon">💼</div>
                             <span>LinkedIn</span>
                         </a>
@@ -444,7 +496,7 @@
                             <div class="contact-icon">✉</div>
                             <span>Email</span>
                         </a>
-                        <a href="https://instagram.com/yourprofile" class="contact-link" target="_blank">
+                        <a href="https://instagram.com/ketan_agrawal_19" class="contact-link" target="_blank">
                             <div class="contact-icon">💬</div>
                             <span>Instagram</span>
                         </a>
@@ -528,5 +580,13 @@
     <footer class="footer">
     <p>&copy; 2025 CookSmart. Made with ❤️ by Team CookSmart</p>
   </footer>
+
+  <!-- Custom Floating Language Selector -->
+  <button class="floating-lang-btn" onclick="toggleLangPopup()">🌐</button>
+  <div id="lang-popup" class="lang-popup" style="display:none;">
+    <button onclick="setLanguage('en')">English</button>
+    <button onclick="setLanguage('hi')">Hindi</button>
+    <button onclick="setLanguage('mr')">Marathi</button>
+  </div>
 </body>
 </html>
