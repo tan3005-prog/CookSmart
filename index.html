@@ -10,57 +10,8 @@
 <script src="script.js" defer></script>
 <script src="login-modal.js" defer></script>
 
-<!-- Custom Language Selector -->
-<style>
-  .floating-lang-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 1000;
-  }
-  .lang-popup {
-    position: fixed;
-    bottom: 90px;
-    right: 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    padding: 10px;
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-  }
-  .lang-popup button {
-    margin: 5px 0;
-    padding: 8px 16px;
-    border: none;
-    background: #764ba2;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  .lang-popup button:hover {
-    background: #667eea;
-  }
-</style>
-<script>
-  function toggleLangPopup() {
-    var popup = document.getElementById('lang-popup');
-    popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-  }
-  function setLanguage(lang) {
-    var url = 'https://translate.google.com/translate?hl=' + lang + '&sl=auto&tl=' + lang + '&u=' + window.location.href;
-    window.location.href = url;
-  }
-</script>
+
+
 
 <style>
 
@@ -215,8 +166,8 @@ margin:0 auto 1rem;
 .footer{
 text-align:center;
 padding:20px;
-background:#333;
-color:white;
+background:white;
+color:black;
 margin-top:40px;
 }
 
@@ -276,33 +227,6 @@ margin-top:40px;
 </div>
 
 </section>
-
-<!-- MORE BENEFITS -->
-
-<h2 class="section-title">More Benefits</h2>
-
-<section class="features">
-
-<div class="feature-card">
-<div class="feature-icon">⭐</div>
-<h3>Community Rated</h3>
-<p>Recipes are rated by users to help you choose the best dishes.</p>
-</div>
-
-<div class="feature-card">
-<div class="feature-icon">📱</div>
-<h3>Mobile Friendly</h3>
-<p>CookSmart works perfectly on phones, tablets, and desktops.</p>
-</div>
-
-<div class="feature-card">
-<div class="feature-icon">🍽️</div>
-<h3>Today's Recommendations</h3>
-<p>Discover trending and recommended recipes updated daily.</p>
-</div>
-
-</section>
-
 <!-- HOW IT WORKS -->
 
 <section class="how-it-works">
@@ -331,17 +255,39 @@ margin-top:40px;
 </div>
 </section>
 
+<!-- MORE BENEFITS -->
+
+<h2 class="section-title">More Benefits</h2>
+
+<section class="features">
+
+<div class="feature-card">
+<div class="feature-icon">⭐</div>
+<h3>Community Rated</h3>
+<p>Recipes are rated by users to help you choose the best dishes.</p>
+</div>
+
+<div class="feature-card">
+<div class="feature-icon">📱</div>
+<h3>Mobile Friendly</h3>
+<p>CookSmart works perfectly on phones, tablets, and desktops.</p>
+</div>
+
+<div class="feature-card">
+<div class="feature-icon">🍽️</div>
+<h3>Today's Recommendations</h3>
+<p>Discover trending and recommended recipes updated daily.</p>
+</div>
+
+</section>
+
+
+
 <footer class="footer">
-<p>&copy; 2025 CookSmart. Made with ❤️ by Team CookSmart</p>
+<p>&copy; 2026 CookSmart. Made with ❤️ by Team CookSmart</p>
 </footer>
 
-<!-- Custom Floating Language Selector -->
-  <button class="floating-lang-btn" onclick="toggleLangPopup()">🌐</button>
-<div id="lang-popup" class="lang-popup" style="display:none;">
-  <button onclick="setLanguage('en')">English</button>
-  <button onclick="setLanguage('hi')">Hindi</button>
-  <button onclick="setLanguage('mr')">Marathi</button>
-</div>
+
 
 </body>
 </html>

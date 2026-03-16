@@ -168,7 +168,11 @@ class LoginModal {
         }
       });
     });
+  
+    
+    
     // Toggle between login and signup
+    
     document.getElementById('toggle-signup').addEventListener('click', (e) => {
       e.preventDefault();
       this.switchMode('signup');
@@ -222,7 +226,10 @@ class LoginModal {
       this.clearErrors();
     });
   }
-
+isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
   switchMode(mode) {
     this.currentMode = mode;
     
@@ -250,7 +257,10 @@ class LoginModal {
       this.showError('login-error', 'Please fill all fields');
       return;
     }
-
+if (!this.isValidEmail(email)) {
+  this.showError('login-error', 'Please enter a valid email address (e.g. user@example.com)');
+  return;
+}
     const btn = e.target.querySelector('.login-btn');
     btn.classList.add('loading');
     btn.textContent = 'Logging in...';
@@ -307,6 +317,7 @@ class LoginModal {
       this.showError('signup-error', 'Please fill all fields');
       return;
     }
+    
 
     if (password !== confirmPassword) {
       this.showError('signup-error', 'Passwords do not match');

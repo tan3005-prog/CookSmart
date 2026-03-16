@@ -9,58 +9,8 @@
   <link rel="stylesheet" href="login-modal.css" />
 <script src="login-modal.js" defer></script>
 
-  <!-- Custom Language Selector -->
-  <style>
-    .floating-lang-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      z-index: 1000;
-    }
-    .lang-popup {
-      position: fixed;
-      bottom: 90px;
-      right: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      padding: 10px;
-      z-index: 1001;
-      display: flex;
-      flex-direction: column;
-    }
-    .lang-popup button {
-      margin: 5px 0;
-      padding: 8px 16px;
-      border: none;
-      background: #764ba2;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .lang-popup button:hover {
-      background: #667eea;
-    }
-  </style>
-  <script>
-    function toggleLangPopup() {
-      var popup = document.getElementById('lang-popup');
-      popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-    }
-    function setLanguage(lang) {
-      // 'en' = English, 'hi' = Hindi, 'mr' = Marathi
-      var url = 'https://translate.google.com/translate?hl=' + lang + '&sl=auto&tl=' + lang + '&u=' + window.location.href;
-      window.location.href = url;
-    }
-  </script>
+  
+  
   <style>
     /* Custom background image for Discover page */
     body.bg-discover {
@@ -246,15 +196,17 @@
     /* Recipe Options Section */
     .recipe-options {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin: 12px 0;
       justify-content: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      width: 100%;
     }
 
     .option-btn {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       padding: 6px 10px;
       border: 1px solid #e6edf3;
@@ -266,6 +218,9 @@
       color: #4a5568;
       transition: all 0.2s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
     }
 
     .option-btn:hover {
@@ -770,7 +725,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; 2025 CookSmart. Made with ❤️</p>
+    <p>&copy; 2026 CookSmart. Made with ❤️</p>
   </footer>
 
   <script>
@@ -1080,7 +1035,7 @@
               <span class="option-text">Share</span>
             </button>
             <button class="option-btn like-btn ${isRecipeLiked(r) ? 'active' : ''}" onclick="toggleLike(${index})" title="${isRecipeLiked(r) ? 'Unlike Recipe' : 'Like Recipe'}">
-              <span class="option-icon">${isRecipeLiked(r) ? '❤️' : '🤍'}</span>
+              <span class="option-icon">${isRecipeLiked(r) ? '👍' : '👍🏻'}</span>
               <span class="option-text">${isRecipeLiked(r) ? 'Liked' : 'Like'}</span>
             </button>
           </div>
@@ -1175,12 +1130,23 @@ if (recipe.nutrition && typeof recipe.nutrition === "object") {
          </div>
         </div>
 
-        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent((recipe.name || recipe.title || 'recipe') + ' recipe')}" 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           class="modal-youtube-link">
-          🎥 Watch Recipe on YouTube
-        </a>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; width:100%">
+  <a href="https://www.youtube.com/results?search_query=${encodeURIComponent((recipe.name || recipe.title || 'recipe') + ' recipe')}" 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     class="modal-youtube-link"
+     style="margin-top:0; flex:1; text-align:center;">
+    🎥 Watch Recipe on YouTube
+  </a>
+
+  <a href="https://www.google.com/search?q=${encodeURIComponent((recipe.name || recipe.title || 'recipe') + ' recipe')}" 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     class="modal-youtube-link"
+     style="margin-top:0; background:#4285f4; box-shadow:0 4px 12px rgba(66,133,244,0.3);">
+    🔍 Search on Google
+  </a>
+</div>
 
         ${nutritionHtml}
       `;
@@ -1476,13 +1442,5 @@ function toggleProfileDropdown(e) {
 
   </script>
 
-  <!-- Custom Floating Language Selector -->
-  <!-- Custom Floating Language Selector -->
-  <button class="floating-lang-btn" onclick="toggleLangPopup()">🌐</button>
-  <div id="lang-popup" class="lang-popup" style="display: none;">
-    <button onclick="setLanguage('en')">English</button>
-    <button onclick="setLanguage('hi')">हिंदी</button>
-    <button onclick="setLanguage('mr')">मराठी</button>
-  </div>
 </body>
 </html>
