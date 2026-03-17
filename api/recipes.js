@@ -327,5 +327,81 @@ router.post('/:id/save', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+// POST /api/recipes/:id/rate - submit star rating
+// POST /api/recipes/:id/rate
+router.post('/:id/rate', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { id } = req.params;
+    const { rating, sessionId, review, userName } = req.body; // ✅ added review & userName
 
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    if (!sessionId) {
+      return res.status(400).json({ message: 'Session ID is required' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid recipe ID' });
+    }
+
+    const recipe = await Recipe.findById(id);
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    // Check if already rated
+    const alreadyRated = recipe.userRatings.find(r => r.sessionId === sessionId);
+    if (alreadyRated) {
+      return res.status(400).json({ message: 'You have already rated this recipe' });
+    }
+
+    // Add new rating + review
+    recipe.userRatings.push({
+      sessionId,
+      userName: userName || 'Anonymous',
+      rating,
+      review: review || ''
+    });
+
+    // Recalculate average
+    const total = recipe.userRatings.length;
+    const sum = recipe.userRatings.reduce((acc, r) => acc + r.rating, 0);
+    recipe.rating = parseFloat((sum / total).toFixed(1));
+
+    await recipe.save();
+
+    res.json({ success: true, newRating: recipe.rating, totalRatings: total });
+
+  } catch (err) {
+    console.error('POST /api/recipes/:id/rate error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// ✅ NEW - GET /api/recipes/:id/reviews - get all reviews
+router.get('/:id/reviews', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid recipe ID' });
+    }
+
+    const recipe = await Recipe.findById(id).select('userRatings name');
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    // Only return reviews that have text
+    const reviews = recipe.userRatings
+      .filter(r => r.review && r.review.trim() !== '')
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, reviews });
+
+  } catch (err) {
+    console.error('GET /api/recipes/:id/reviews error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 module.exports = router;

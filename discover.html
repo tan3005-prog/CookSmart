@@ -8,7 +8,8 @@
   <script src="script.js" defer></script>
   <link rel="stylesheet" href="login-modal.css" />
 <script src="login-modal.js" defer></script>
-
+<link rel="stylesheet" href="feedback.css" />
+<script src="feedback.js" defer></script>
   
   
   <style>
@@ -735,7 +736,7 @@
     let selectedIngredients = [];
     let activeFilters = new Set(["all"]);
     let allRecipes = [];
-
+    let currentOpenRecipe = null;
     // Track viewed recipes for personalized recommendations
     function trackRecipeView(recipeId) {
       let viewedRecipes = JSON.parse(localStorage.getItem('viewedRecipes') || '[]');
@@ -1052,7 +1053,8 @@
     function openRecipeModal(index) {
       const recipe = allRecipes[index];
       if (!recipe) return;
-
+        currentOpenRecipe = recipe;  
+        console.log('Opened recipe _id:', recipe._id); 
       // Track this recipe view for personalization
       trackRecipeView(recipe._id || recipe.id);
 
@@ -1156,11 +1158,29 @@ if (recipe.nutrition && typeof recipe.nutrition === "object") {
       document.body.style.overflow = "hidden";
     }
 
-    // Close Modal
-    function closeModal() {
-      document.getElementById("recipeModal").classList.remove("active");
-      document.body.style.overflow = "auto";
+function closeModal() {
+  document.getElementById("recipeModal").classList.remove("active");
+  document.body.style.overflow = "auto";
+
+  if (currentOpenRecipe) {
+    // ✅ Try all possible id fields
+    const recipeId = currentOpenRecipe._id 
+      || currentOpenRecipe.id 
+      || null;
+
+    console.log('Recipe ID for feedback:', recipeId); // debug
+
+    if (recipeId && String(recipeId).length === 24) {
+      feedbackModal.openModal(
+        String(recipeId),
+        currentOpenRecipe.name || currentOpenRecipe.title || '',
+        currentOpenRecipe.image ? `images/${currentOpenRecipe.image}` : ''
+      );
     }
+    currentOpenRecipe = null;
+  }
+}
+
 
     // Close modal when clicking on overlay
     function closeModalOnOverlay(event) {
@@ -1441,6 +1461,68 @@ function toggleProfileDropdown(e) {
 
 
   </script>
+<!-- Feedback Modal -->
+<!-- Feedback Modal -->
+<div id="feedback-modal-overlay" class="feedback-overlay">
+  <div class="feedback-modal">
+    <button class="feedback-close">&times;</button>
 
+    <div class="feedback-recipe-info">
+      <img id="feedback-recipe-img" src="" alt="">
+      <h3 id="feedback-recipe-name"></h3>
+    </div>
+
+    <p class="feedback-question">How would you rate this recipe?</p>
+
+    <div class="star-rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+
+    <p class="star-label" id="star-label">Click a star to rate</p>
+
+    <!-- ✅ NEW - Review section (only for logged in users) -->
+    <div id="review-section" style="display:none;">
+      <div class="feedback-review-section">
+        <label for="review-textarea">Write a Review (optional)</label>
+        <textarea 
+          id="review-textarea" 
+          class="feedback-review-textarea" 
+          placeholder="Share your experience with this recipe..."
+          maxlength="300"
+          oninput="updateCharCount(this)"
+        ></textarea>
+        <div class="feedback-char-count"><span id="char-count">0</span>/300</div>
+      </div>
+    </div>
+
+    <!-- ✅ Show message if not logged in -->
+    <div id="login-required-msg" style="display:none;">
+      <div class="login-required-msg">
+        🔒 <a href="#" onclick="window.loginModal.openModal()">Login</a> to write a review
+      </div>
+    </div>
+
+    <button class="feedback-submit-btn" id="feedback-submit" disabled>
+      Submit Rating
+    </button>
+
+    <div class="feedback-success" id="feedback-success">
+      🎉 Thanks for your feedback!
+    </div>
+
+    <!-- ✅ NEW - Reviews list -->
+    <div class="reviews-list" id="reviews-list">
+      <h4>💬 Reviews</h4>
+      <div id="reviews-content">
+        <p class="no-reviews">No reviews yet. Be the first!</p>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>

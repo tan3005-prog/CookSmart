@@ -77,7 +77,16 @@ const recipeSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-
+ userRatings: [
+  {
+    sessionId: { type: String },
+    userId: { type: String, default: null },
+    userName: { type: String, default: 'Anonymous' },
+    rating: { type: Number, min: 1, max: 5 },
+    review: { type: String, default: '' },  // ✅ NEW
+    createdAt: { type: Date, default: Date.now }
+  }
+],
   views: {
     type: Number,
     default: 0
