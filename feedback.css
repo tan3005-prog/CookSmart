@@ -17,10 +17,13 @@
   background: #fff;
   border-radius: 16px;
   padding: 32px;
-  width: 380px;
+  width: 600px;        /* ✅ wider */
+  max-width: 95vw;     /* ✅ responsive on mobile */
   text-align: center;
   position: relative;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-height: 90vh;    /* ✅ prevent overflow */
+  overflow-y: auto;    /* ✅ scroll if too tall */
 }
 
 .feedback-close {
@@ -35,11 +38,13 @@
 }
 
 .feedback-recipe-info img {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;   /* ✅ makes it circular */
   object-fit: cover;
   margin-bottom: 8px;
+  border: 3px solid #764ba2;  /* ✅ nice purple border */
+  box-shadow: 0 4px 12px rgba(118,75,162,0.3);  /* ✅ soft shadow */
 }
 
 .feedback-recipe-info h3 {
