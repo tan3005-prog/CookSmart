@@ -20,6 +20,86 @@
       background-position: center;
       background-attachment: fixed;
     }
+    /* Hamburger Button */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 1001;
+}
+
+.hamburger span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background: #764ba2;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger animation when open */
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 6px);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -6px);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex; /* ✅ show on mobile */
+  }
+
+  .navbar-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 1000;
+    gap: 8px;
+  }
+
+  .navbar-menu.open {
+    display: flex; /* ✅ show menu when open */
+  }
+
+  .navbar-menu li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .navbar-menu li a {
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    transition: background 0.2s;
+  }
+
+  .navbar-menu li a:hover {
+    background: #f3f0fa;
+    color: #764ba2;
+  }
+
+  /* Make sure navbar is relative for absolute menu */
+  .navbar {
+    position: relative;
+  }
+}
     .discover-header {
       text-align: center;
       margin-top: 36px;
@@ -616,23 +696,33 @@
     .notification-warning {
       background: linear-gradient(45deg, #ed8936, #dd6b20);
     }
-
+     
+     
   </style>
 </head>
 <body class="bg-discover">
   <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-container">
-      <a href="index.html" class="navbar-brand"><img src="images/logo.jpg" alt="Logo" style="height:60px; width:200px; border-radius:8%; margin-right:0.5rem; object-fit:cover; vertical-align:middle;"></a>
-      <ul class="navbar-menu">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="discover.html" class="active">Discover</a></li>
-        <li><a href="trending.html">Trending</a></li>
-        <li><a href="about.html">About</a></li>
-  
-      </ul>
-    </div>
-  </nav>
+ <nav class="navbar">
+<div class="navbar-container">
+  <a href="index.html" class="navbar-brand">
+    <img src="images/logo.jpg" alt="Logo" style="height:60px; width:200px; border-radius:8%; margin-right:0.5rem; object-fit:cover; vertical-align:middle;">
+  </a>
+
+  <!-- ✅ Hamburger button -->
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <ul class="navbar-menu" id="navbar-menu">
+     <li><a href="index.html">Home</a></li>
+   <li><a href="discover.html" class="active">Discover</a></li>
+    <li><a href="trending.html" onclick="return LoginModal.requireLogin(event)">Trending</a></li>
+    <li><a href="about.html" onclick="return LoginModal.requireLogin(event)">About</a></li>
+  </ul>
+</div>
+</nav>
 
   <!-- Discover Header Section -->
   <div class="discover-header">
@@ -1524,5 +1614,31 @@ function toggleProfileDropdown(e) {
 
   </div>
 </div>
+<script>
+function toggleMenu() {
+  const menu = document.getElementById('navbar-menu');
+  const hamburger = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  hamburger.classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('navbar-menu');
+  const hamburger = document.getElementById('hamburger');
+  if (!menu.contains(e.target) && !hamburger.contains(e.target)) {
+    menu.classList.remove('open');
+    hamburger.classList.remove('open');
+  }
+});
+
+// Close menu when a link is clicked
+document.querySelectorAll('.navbar-menu a').forEach(link => {
+  link.addEventListener('click', () => {
+    document.getElementById('navbar-menu').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+  });
+});
+</script>
 </body>
 </html>
