@@ -59,6 +59,14 @@ try {
   console.warn('Could not load ./api/search. Search routes will be unavailable.');
 }
 
+try {
+  const usersRouter = require('./api/users');
+  app.use('/api/users', usersRouter);
+  console.log('✅ Users router loaded');
+} catch (e) {
+  console.warn('Could not load ./api/users:', e.message);
+}
+
 app.get('/health', (req, res) => res.json({ status: 'ok', message: 'Server is running' }));
 
 // Test API endpoints

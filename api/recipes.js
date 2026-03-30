@@ -261,11 +261,12 @@ router.post('/:id/like', async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const isLiked = user.likedRecipes.includes(recipe._id);
+    // Use equals to compare ObjectId values reliably
+    const isLiked = user.likedRecipes.some(r => r && r.equals && r.equals(recipe._id));
     
     if (isLiked) {
       // Unlike: remove from user's liked recipes and decrement count
-      user.likedRecipes = user.likedRecipes.filter(r => !r.equals(recipe._id));
+      user.likedRecipes = user.likedRecipes.filter(r => !(r && r.equals && r.equals(recipe._id)));
       recipe.likes = Math.max(0, recipe.likes - 1);
     } else {
       // Like: add to user's liked recipes and increment count
@@ -306,11 +307,11 @@ router.post('/:id/save', async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const isSaved = user.savedRecipes.includes(recipe._id);
+    const isSaved = user.savedRecipes.some(r => r && r.equals && r.equals(recipe._id));
     
     if (isSaved) {
       // Unsave: remove from user's saved recipes
-      user.savedRecipes = user.savedRecipes.filter(r => !r.equals(recipe._id));
+      user.savedRecipes = user.savedRecipes.filter(r => !(r && r.equals && r.equals(recipe._id)));
     } else {
       // Save: add to user's saved recipes
       user.savedRecipes.push(recipe._id);

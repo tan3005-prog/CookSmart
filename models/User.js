@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
     default: ''
   },
   
+  contactNumber: {
+    type: String,
+    default: ''
+  },
+  
   likedRecipes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Recipe'

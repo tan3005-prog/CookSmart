@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CookSmart - Personal Details</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="login-modal.css" />
+  <script src="script.js" defer></script>
+  <script src="login-modal.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="navbar-brand"><img src="images/logo.jpg" style="height:48px; width:160px; object-fit:cover; border-radius:6px;"></a>
+      <ul class="navbar-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="discover.html" onclick="return LoginModal.requireLogin(event)">Discover</a></li>
+        <li><a href="trending.html" onclick="return LoginModal.requireLogin(event)">Trending</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main style="max-width:900px;margin:36px auto;padding:0 16px;">
+    <div style="background:var(--card-bg);padding:20px;border-radius:12px;box-shadow:0 8px 20px rgba(15,23,42,0.06);">
+      <h1 style="color:#764ba2;margin-bottom:8px;">Personal Details</h1>
+      <p style="color:#667eea;margin-top:0;margin-bottom:18px;">Update your name and email. Changes are stored locally and attempted to be saved to your account when you're logged in.</p>
+
+      <form id="personalForm">
+        <div class="form-group">
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" placeholder="Full name" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <div class="input-with-verify">
+            <input id="email" name="email" type="email" readonly />
+            <span id="verifyEmailBtn" class="verify-text" style="margin-left:8px;">Verify</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="contactNumber">Contact number</label>
+          <div class="input-with-verify">
+            <input id="contactNumber" name="contactNumber" type="text" placeholder="e.g. +1 555 555 5555" readonly />
+            <span id="verifyContactBtn" class="verify-text" style="margin-left:8px;">Verify</span>
+          </div>
+          <div id="contactError" style="display:none;color:#9b2c2c;font-size:13px;margin-top:6px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="createdAt">Account created</label>
+          <input id="createdAt" name="createdAt" type="text" readonly />
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button id="editPersonal" class="btn" type="button">Edit</button>
+          <button id="cancelPersonal" class="btn" type="button" style="display:none">Cancel</button>
+          <button id="savePersonal" class="btn" type="button" style="display:none" disabled>Save</button>
+        </div>
+      </form>
+
+      <div id="otpSection" style="display:none;margin-top:12px;">
+        <p id="otpMessage" style="margin:0 0 8px 0;color:#374151;font-size:14px"></p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="otpInput" type="text" placeholder="Enter OTP" style="padding:8px;border:1px solid #ddd;border-radius:6px;" />
+          <button id="verifyOtp" class="btn">Verify OTP</button>
+          <button id="resendOtp" class="btn">Resend</button>
+        </div>
+      </div>
+
+      <div id="personalMessage" style="margin-top:12px;display:none;padding:10px;border-radius:8px;"></div>
+    </div>
+  </main>
+
+  <script src="personal.js" defer></script>
+</body>
+</html>

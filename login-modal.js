@@ -5,6 +5,8 @@ class LoginModal {
     this.currentMode = 'login'; // 'login' or 'signup'
     this.redirectUrl = null; // Store redirect URL after login
     this.init();
+  // start session monitor to auto-logout on expiry
+  this.startSessionMonitor();
   }
 
   init() {
@@ -15,7 +17,19 @@ class LoginModal {
 
   checkLoginStatus() {
     const user = localStorage.getItem('user');
-    return !!user;
+    if (!user) return false;
+    // check session expiry if set
+    const expiry = localStorage.getItem('sessionExpiry');
+    if (expiry) {
+      const ts = Number(expiry) || 0;
+      if (Date.now() > ts) {
+        // session expired, clear stored user
+        localStorage.removeItem('user');
+        localStorage.removeItem('sessionExpiry');
+        return false;
+      }
+    }
+    return true;
   }
 
   getCurrentUser() {
@@ -284,6 +298,9 @@ if (!this.isValidEmail(email)) {
       localStorage.setItem('user', JSON.stringify(data.user));
       this.isLoggedIn = true;
 
+  // set session expiry (default 30 minutes)
+  try { this.setSessionExpiry(Number(window.SESSION_TIMEOUT_MINUTES) || 30); } catch(e) {}
+
       this.showSuccess('login-success', 'Login successful!');
 
       // Close modal and redirect
@@ -351,6 +368,9 @@ if (!this.isValidEmail(email)) {
       localStorage.setItem('user', JSON.stringify(data.user));
       this.isLoggedIn = true;
 
+  // set session expiry (default 30 minutes)
+  try { this.setSessionExpiry(Number(window.SESSION_TIMEOUT_MINUTES) || 30); } catch(e) {}
+
       this.showSuccess('signup-success', 'Signup successful! Welcome aboard 🎉');
 
       // Reset form
@@ -411,7 +431,37 @@ if (!this.isValidEmail(email)) {
   logout() {
     localStorage.removeItem('user');
     this.isLoggedIn = false;
+    this.clearSessionExpiry();
     window.location.href = '/index.html';
+  }
+
+  // Set session expiry minutes from now (stores timestamp in ms)
+  setSessionExpiry(minutes) {
+    const ms = Math.max(1, Number(minutes)) * 60 * 1000;
+    const expiryTs = Date.now() + ms;
+    localStorage.setItem('sessionExpiry', String(expiryTs));
+  }
+
+  clearSessionExpiry() {
+    localStorage.removeItem('sessionExpiry');
+  }
+
+  // Periodically check session expiry every 15s
+  startSessionMonitor() {
+    if (this._sessionMonitorInterval) return;
+    this._sessionMonitorInterval = setInterval(() => {
+      const expiry = localStorage.getItem('sessionExpiry');
+      if (!expiry) return;
+      const ts = Number(expiry) || 0;
+      if (Date.now() > ts) {
+        // session expired
+        clearInterval(this._sessionMonitorInterval);
+        this._sessionMonitorInterval = null;
+        // notify and logout
+        alert('Your session has expired. Please login again.');
+        this.logout();
+      }
+    }, 15000);
   }
 
   setupProtectedPages() {
@@ -458,8 +508,18 @@ if (!this.isValidEmail(email)) {
             <path d="M7 10l5 5 5-5z" fill="currentColor"/>
           </svg>
         </a>
+
+  <!-- removed side-list: using a nested submenu on the Profile row instead -->
+
         <div class="profile-dropdown">
-          <a href="#" class="profile-menu-link profile-link-item">Profile</a>
+          <div class="profile-item-with-sub">
+            <a href="#" class="profile-menu-link profile-link-item">Profile</a>
+          </div>
+          <!-- submenu placed left of the main dropdown -->
+          <div class="profile-submenu-left" aria-hidden="true">
+            <a href="/personal.html" class="profile-menu-link personal-link">Personal details</a>
+            <a href="/saved.html" class="profile-menu-link saved-link">Saved recipes</a>
+          </div>
           <a href="#" class="profile-menu-link settings-link">Settings</a>
           <a href="#" class="profile-menu-link logout-link">Logout</a>
         </div>
@@ -471,7 +531,12 @@ if (!this.isValidEmail(email)) {
       profileLink.addEventListener('click', (e) => {
         e.preventDefault();
         const dropdown = profileItem.querySelector('.profile-dropdown');
-        dropdown.classList.toggle('show');
+        const profileRow = profileItem.querySelector('.profile-item-with-sub .profile-link-item');
+        const isShown = dropdown.classList.toggle('show');
+        // update aria-expanded for accessibility
+        if (profileRow && profileRow.setAttribute) {
+          profileRow.setAttribute('aria-expanded', isShown ? 'true' : 'false');
+        }
       });
 
       // Close dropdown when clicking outside
@@ -482,12 +547,51 @@ if (!this.isValidEmail(email)) {
       });
 
       // Profile link click handler
-      profileItem.querySelector('.profile-link-item').addEventListener('click', (e) => {
+      const profileLinkItem = profileItem.querySelector('.profile-link-item');
+      profileLinkItem.addEventListener('click', (e) => {
         e.preventDefault();
         // Navigate to profile page (you can create this page later)
         console.log('Profile clicked for:', user.email);
         // window.location.href = '/profile.html';
       });
+
+  // accessibility: toggle aria-expanded on hover/focus for nested submenu
+  const profileItemWithSub = profileItem.querySelector('.profile-item-with-sub');
+  const submenu = profileItem.querySelector('.profile-submenu-left');
+      if (profileItemWithSub && submenu) {
+        profileLinkItem.setAttribute('aria-haspopup', 'true');
+        profileLinkItem.setAttribute('aria-expanded', 'false');
+
+        // update aria on mouse enter/leave
+        profileItemWithSub.addEventListener('mouseenter', () => {
+          profileLinkItem.setAttribute('aria-expanded', 'true');
+        });
+        profileItemWithSub.addEventListener('mouseleave', () => {
+          profileLinkItem.setAttribute('aria-expanded', 'false');
+        });
+
+        // keyboard focus support: show aria-expanded when focusing the profile link
+        profileLinkItem.addEventListener('focus', () => profileLinkItem.setAttribute('aria-expanded', 'true'));
+        profileLinkItem.addEventListener('blur', () => profileLinkItem.setAttribute('aria-expanded', 'false'));
+      }
+
+      // Personal details click handler: navigate directly (page enforces login)
+      const personalLink = profileItem.querySelector('.personal-link');
+      if (personalLink) {
+        personalLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = '/personal.html';
+        });
+      }
+
+      // Saved recipes click handler: navigate directly (page enforces login)
+      const savedLink = profileItem.querySelector('.saved-link');
+      if (savedLink) {
+        savedLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = '/saved.html';
+        });
+      }
 
       // Settings link click handler
       profileItem.querySelector('.settings-link').addEventListener('click', (e) => {
@@ -509,14 +613,43 @@ if (!this.isValidEmail(email)) {
 
   // Public method to check login before navigation
   static requireLogin(event, redirectUrl) {
-    const modal = window.loginModal;
+    // Ensure the modal instance exists
+    let modal = window.loginModal;
+    if (!modal) {
+      try {
+        modal = new LoginModal();
+        window.loginModal = modal;
+      } catch (e) {
+        // If creating modal fails for any reason, allow navigation to proceed
+        console.warn('Could not initialize login modal:', e);
+        return true;
+      }
+    }
+
+    // Try to infer the target href if redirectUrl not explicitly provided
+    if (!redirectUrl && event && event.currentTarget) {
+      try {
+        const anchor = event.currentTarget.closest ? event.currentTarget.closest('a') : event.currentTarget;
+        if (anchor && anchor.getAttribute) redirectUrl = anchor.getAttribute('href');
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (!modal.isLoggedIn) {
-      event.preventDefault();
-      modal.redirectUrl = redirectUrl; // Store the redirect URL
+      // prevent default navigation and open login modal; after login the modal will redirect
+      if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      modal.redirectUrl = redirectUrl || null; // store the desired URL
       modal.openModal();
       return false;
     }
-    if (redirectUrl) window.location.href = redirectUrl;
+
+    // If already logged in and a redirect URL is provided, navigate to it
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+      return false;
+    }
+
     return true;
   }
 }

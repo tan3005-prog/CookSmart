@@ -540,13 +540,85 @@
   min-width: 180px;
   display: none;
   z-index: 10000;
-  overflow: hidden;
+  overflow: visible; /* allow nested submenu to extend outside without being clipped */
   animation: slideDown 0.2s ease;
-  margin-top: 8px;
+  margin-top: 2px; /* reduce gap so mouse doesn't leave the hover area */
 }
 
 .profile-dropdown.show {
   display: block;
+}
+
+/* When the main dropdown is opened via click (has .show), also reveal the nested submenu
+   so users can click 'Personal details' and 'Saved recipes' after opening the dropdown. */
+.profile-dropdown.show > .profile-submenu-left {
+  display: block;
+}
+
+/* Show dropdown on hover for pointer devices (keeps click toggle intact) */
+@media (hover: hover) and (pointer: fine) {
+  /* On hover show the main dropdown and the side list. Dropdown still toggles via click for accessibility. */
+  .profile-menu-item:hover .profile-dropdown {
+    display: block;
+  }
+}
+
+/* keep dropdown visible when hovering it directly (prevents flicker when moving pointer) */
+.profile-dropdown:hover {
+  display: block;
+}
+
+/* (Removed profile-side-list styles; nested submenu used instead) */
+
+/* small sublist inside dropdown (Personal details / Saved recipes) */
+.profile-submenu-left {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 8px;
+  background: white;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  min-width: 160px;
+  display: none;
+  overflow: hidden;
+  z-index: 10001;
+}
+
+/* reveal nested submenu only when hovering the Profile row (or focusing it) */
+@media (hover: hover) and (pointer: fine) {
+  .profile-item-with-sub:hover ~ .profile-submenu-left,
+  .profile-item-with-sub:focus-within ~ .profile-submenu-left {
+    display: block;
+  }
+}
+
+/* Also show nested submenu when dropdown is programmatically opened (click -> .show)
+   or when the Profile row contains keyboard focus (focus-within). This ensures
+   the submenu is visible for both hover and click interactions. */
+.profile-item-with-sub:focus-within ~ .profile-submenu-left {
+  display: block;
+}
+
+/* caret indicator on Profile row to show it has a nested submenu */
+.profile-item-with-sub .profile-link-item {
+  position: relative;
+  padding-right: 28px; /* space for the caret */
+}
+.profile-item-with-sub .profile-link-item::after {
+  content: '◂';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa3ad;
+  font-size: 12px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.profile-item-with-sub:hover .profile-link-item::after {
+  transform: translateY(-50%) translateX(-2px);
+  color: #764ba2;
 }
 
 @keyframes slideDown {

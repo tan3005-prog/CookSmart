@@ -793,7 +793,17 @@
       <div class="recipes-section">
         <div class="recipes-header">
           <h3>🍽 Recipe Results</h3>
-          <span id="recipeCount">0 recipes found</span>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span id="recipeCount">0 recipes found</span>
+            <label for="pageSizeSelect" style="font-size:0.9rem; color:#4a5568;">Show:</label>
+            <select id="pageSizeSelect" style="padding:6px 8px; border-radius:8px; border:1px solid #e6edf3; background:white; font-weight:600;">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="75">75</option>
+              <option value="100">100</option>
+              <option value="all">All</option>
+            </select>
+          </div>
         </div>
         <div id="recipesContainer" class="recipe-grid">
           <div class="empty-state">
@@ -978,35 +988,63 @@
     // Fetch Recipes from Backend
     async function fetchRecipes() {
       try {
-        let url = `${API}/recipes`;
+        // Determine page size from selector
+        const pageSizeEl = document.getElementById('pageSizeSelect');
+        const pageSizeVal = pageSizeEl ? pageSizeEl.value : '25';
 
-        if (selectedIngredients.length > 0) {
-          const ing = selectedIngredients.map(ing => ing.name).join(",");
-          url = `${API}/search?ingredients=${encodeURIComponent(ing)}&mode=and`;
-        }
+        // Base URL and query params
+        const useSearch = selectedIngredients.length > 0;
+        const basePath = useSearch ? `${API}/search` : `${API}/recipes`;
 
-        const res = await fetch(url, { cache: 'no-store' });
-
-        if (!res.ok && res.status !== 304) {
-          throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-        }
+        // Helper to fetch a single page
+        const fetchPage = async (pageNum, limit) => {
+          let url = `${basePath}?page=${pageNum}&limit=${limit}`;
+          if (useSearch) {
+            const ing = selectedIngredients.map(ing => ing.name).join(",");
+            url = `${basePath}?ingredients=${encodeURIComponent(ing)}&mode=and&page=${pageNum}&limit=${limit}`;
+          }
+          const r = await fetch(url, { cache: 'no-store' });
+          if (!r.ok && r.status !== 304) throw new Error(`Fetch failed: ${r.status} ${r.statusText}`);
+          return r.json().catch(()=>null);
+        };
 
         let data;
-        try {
-          data = await res.json();
-        } catch (e) {
-          console.warn('No JSON body or parse failed for', url, e);
-          data = null;
+        if (pageSizeVal === 'all') {
+          // Page through results until we have them all. Server enforces max limit 100 per request.
+          const results = [];
+          let page = 1;
+          const perPage = 100; // server-side cap
+          let total = 0;
+          while (true) {
+            const pageData = await fetchPage(page, perPage);
+            if (!pageData) break;
+            const pageResults = Array.isArray(pageData.results) ? pageData.results : (Array.isArray(pageData) ? pageData : (pageData && pageData.documents ? pageData.documents : []));
+            if (page === 1) {
+              total = typeof pageData.total === 'number' ? pageData.total : (Array.isArray(pageData) ? pageData.length : results.length + pageResults.length);
+            }
+            results.push(...pageResults);
+            // stop if we received less than perPage or we've fetched all
+            if (pageResults.length < perPage || results.length >= total) break;
+            page += 1;
+          }
+          data = { results, total };
+        } else {
+          // Normal single-page fetch with chosen limit
+          const lim = Math.max(1, Math.min(100, parseInt(pageSizeVal, 10) || 25));
+          data = await fetchPage(1, lim);
         }
 
-        console.log('API response for', url, data);
+        
+        console.log('API response for fetchRecipes', data);
+
+  console.log('API response for', basePath, 'pageSize:', pageSizeVal, data);
 
         let recipesList = [];
         let totalCount = 0;
 
-        if (Array.isArray(data)) {
-          recipesList = data;
-          totalCount = data.length;
+          if (Array.isArray(data)) {
+            recipesList = data;
+            totalCount = data.length;
         } else if (data && Array.isArray(data.results)) {
           recipesList = data.results;
           totalCount = typeof data.total === 'number' ? data.total : data.results.length;
@@ -1020,6 +1058,42 @@
 
         const filtered = applyFilters(recipesList);
         allRecipes = filtered;
+        // If user is logged in but we don't yet have saved/liked IDs, try to fetch them before rendering
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user && user._id && (savedRecipeIds.size === 0 && likedRecipeIds.size === 0)) {
+          try {
+            const [savedRes, likesRes] = await Promise.all([
+              fetch(`${API}/users/${user._id}/saved`),
+              fetch(`${API}/users/${user._id}/likes`)
+            ]);
+            if (savedRes && savedRes.ok) {
+              const d = await savedRes.json();
+              if (Array.isArray(d.savedIds)) {
+                savedRecipeIds = new Set(d.savedIds.map(String));
+              } else {
+                const list = Array.isArray(d.saved) ? d.saved : [];
+                savedRecipeIds = new Set(list.map(r => String(r._id || r.id || r)));
+              }
+            }
+            if (likesRes && likesRes.ok) {
+              const d2 = await likesRes.json();
+              if (Array.isArray(d2.likedIds)) {
+                likedRecipeIds = new Set(d2.likedIds.map(String));
+              } else {
+                const list2 = Array.isArray(d2.liked) ? d2.liked : [];
+                likedRecipeIds = new Set(list2.map(r => String(r._id || r.id || r)));
+              }
+            }
+          } catch (e) {
+            console.warn('Fallback fetch of saved/liked IDs failed', e);
+          }
+        }
+
+        // Debug output to diagnose missing liked markers
+        try {
+          console.debug('likedRecipeIds (sample)', Array.from(likedRecipeIds).slice(0,20));
+          console.debug('first recipe ids', (recipesList || []).slice(0,10).map(r => (r && (r._id || r.id)) || r));
+        } catch (e) { console.warn('Debug logging failed', e); }
 
         renderRecipes(filtered);
         updateRecipeCount(filtered.length || totalCount);
@@ -1063,14 +1137,44 @@
 }
 
     // Helper functions for recipe states
+  // savedRecipeIds / likedRecipeIds are populated from server for logged-in users to avoid cross-account leaks
+  let savedRecipeIds = new Set();
+  let likedRecipeIds = new Set();
+
+    function normalizeId(val) {
+      // Accept objects with _id, objects with id, ObjectId instances, or plain strings/numbers
+      if (!val && val !== 0) return '';
+      if (typeof val === 'string' || typeof val === 'number') return String(val);
+      if (val._id) return String(val._id);
+      if (val.id) return String(val.id);
+      try { return String(val); } catch (e) { return '' }
+    }
+
     function isRecipeSaved(recipe) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (user && user._id) {
+        return savedRecipeIds.has(String(recipe._id || recipe.id));
+      }
+      // fallback for guests uses localStorage (guest-only saves)
       const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
       return savedRecipes.some(r => (r._id || r.id) === (recipe._id || recipe.id));
     }
 
     function isRecipeLiked(recipe) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      const rid = normalizeId(recipe._id || recipe.id || recipe);
+      if (user && user._id) {
+        // primary check: server-provided set
+        if (likedRecipeIds.has(rid)) return true;
+        // defensive: sometimes the server returns object shapes that don't match; try matching by loose equality
+        for (const x of likedRecipeIds) {
+          if (!x) continue;
+          if (String(x) === rid) return true;
+        }
+        return false;
+      }
       const likes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
-      return likes.some(r => (r._id || r.id) === (recipe._id || recipe.id));
+      return likes.some(r => normalizeId(r._id || r.id || r) === rid);
     }
 
     // Render Recipe Cards
@@ -1117,9 +1221,9 @@
           
           <!-- Recipe Options Section -->
           <div class="recipe-options">
-            <button class="option-btn save-btn ${isRecipeSaved(r) ? 'active' : ''}" onclick="saveRecipe(${index})" title="${isRecipeSaved(r) ? 'Remove from Saved' : 'Save Recipe'}">
+            <button class="option-btn save-btn ${isRecipeSaved(r) ? 'active' : ''}" onclick="saveRecipe(${index})" title="${isRecipeSaved(r) ? 'Remove from Saved' : 'Save Recipe'}" aria-label="Save recipe; hover to remove">
               <span class="option-icon">${isRecipeSaved(r) ? '💾✓' : '💾'}</span>
-              <span class="option-text">${isRecipeSaved(r) ? 'Saved' : 'Save'}</span>
+              ${isRecipeSaved(r) ? `<span class="option-text saved-text">Saved</span><span class="option-text remove-text">Remove</span>` : `<span class="option-text">Save</span>`}
             </button>
             <button class="option-btn share-btn" onclick="shareRecipe(${index})" title="Share Recipe">
               <span class="option-icon">📤</span>
@@ -1433,7 +1537,42 @@ function closeModal() {
     // initial fetch on page load (optional - loads all recipes)
     document.addEventListener('DOMContentLoaded', () => {
       updateActiveFilterDisplay();
-      fetchRecipes();
+      // Wire page size selector
+      const pageSizeEl = document.getElementById('pageSizeSelect');
+      if (pageSizeEl) {
+        pageSizeEl.value = '25';
+        pageSizeEl.addEventListener('change', () => {
+          fetchRecipes();
+        });
+      }
+      // If logged-in, fetch saved recipe IDs for this user
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (user && user._id) {
+        // fetch saved and liked IDs concurrently
+        Promise.all([
+          fetch(`/api/users/${user._id}/saved`).catch(err => { console.warn('Saved fetch failed', err); return null; }),
+          fetch(`/api/users/${user._id}/likes`).catch(err => { console.warn('Likes fetch failed', err); return null; })
+        ]).then(async ([savedRes, likesRes]) => {
+          if (savedRes && savedRes.ok) {
+            const data = await savedRes.json();
+            const list = Array.isArray(data.saved) ? data.saved : (Array.isArray(data) ? data : []);
+            savedRecipeIds = new Set(list.map(r => String(r._id || r.id || r)));
+          }
+          if (likesRes && likesRes.ok) {
+            const data2 = await likesRes.json();
+            const list2 = Array.isArray(data2.liked) ? data2.liked : (Array.isArray(data2) ? data2 : []);
+            likedRecipeIds = new Set(list2.map(r => String(r._id || r.id || r)));
+          }
+          // Now fetch recipes and render with correct saved/liked state
+          fetchRecipes();
+        }).catch(err => {
+          console.warn('Could not fetch saved/liked IDs', err);
+          fetchRecipes();
+        });
+    
+  } else {
+        fetchRecipes();
+      }
     });
 
     function toggleNutrition(event) {
@@ -1449,28 +1588,56 @@ function closeModal() {
     function saveRecipe(index) {
       const recipe = allRecipes[index];
       if (!recipe) return;
-
-      // Get existing saved recipes from localStorage
-      let savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
-      
-      // Check if already saved
-      const isAlreadySaved = savedRecipes.some(r => (r._id || r.id) === (recipe._id || recipe.id));
-      
-      if (isAlreadySaved) {
-        // Remove from saved
-        savedRecipes = savedRecipes.filter(r => (r._id || r.id) !== (recipe._id || recipe.id));
-        showNotification('Recipe removed from saved recipes', 'info');
+      // If logged in, call server to toggle save; otherwise fall back to localStorage
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (user && user._id) {
+        // attempt server call
+        fetch(`/api/recipes/${recipe._id || recipe.id}/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user._id })
+        }).then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(()=>({ error: 'Unknown' }));
+            showNotification('Could not update saved recipes on server', 'error');
+            console.error('Save API error', err);
+            return;
+          }
+          const data = await res.json();
+          showNotification(data.saved ? 'Recipe saved successfully!' : 'Recipe removed from saved recipes', 'success');
+          // Update in-memory saved ID set and re-render; do NOT persist to shared localStorage for logged-in users
+          if (data.saved) {
+            savedRecipeIds.add(String(recipe._id || recipe.id));
+          } else {
+            savedRecipeIds.delete(String(recipe._id || recipe.id));
+          }
+          renderRecipes(allRecipes);
+        }).catch(err => {
+          console.error('Save API network error', err);
+          showNotification('Network error while saving recipe', 'error');
+        });
       } else {
-        // Add to saved
-        savedRecipes.push(recipe);
-        showNotification('Recipe saved successfully!', 'success');
+        // Get existing saved recipes from localStorage
+        let savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
+        
+        // Check if already saved
+        const isAlreadySaved = savedRecipes.some(r => (r._id || r.id) === (recipe._id || recipe.id));
+        
+        if (isAlreadySaved) {
+          // Remove from saved
+          savedRecipes = savedRecipes.filter(r => (r._id || r.id) !== (recipe._id || recipe.id));
+          showNotification('Recipe removed from saved recipes', 'info');
+        } else {
+          // Add to saved
+          savedRecipes.push(recipe);
+          showNotification('Recipe saved successfully!', 'success');
+        }
+        
+  // Save back to localStorage (guest-only cache)
+  localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+  // Re-render recipes to update button states
+  renderRecipes(allRecipes);
       }
-      
-      // Save back to localStorage
-      localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-      
-      // Re-render recipes to update button states
-      renderRecipes(allRecipes);
     }
 
     function shareRecipe(index) {
@@ -1502,27 +1669,49 @@ function closeModal() {
     function toggleLike(index) {
       const recipe = allRecipes[index];
       if (!recipe) return;
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (user && user._id) {
+        // Call server to toggle like and update in-memory set
+        fetch(`/api/recipes/${recipe._id || recipe.id}/like`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user._id })
+        }).then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(()=>({ error: 'Unknown' }));
+            showNotification('Could not update likes on server', 'error');
+            console.error('Like API error', err);
+            return;
+          }
+          const data = await res.json();
+          // data.liked indicates the new liked state
+          if (data.liked) {
+            likedRecipeIds.add(String(recipe._id || recipe.id));
+            showNotification('Recipe liked! ❤️', 'success');
+          } else {
+            likedRecipeIds.delete(String(recipe._id || recipe.id));
+            showNotification('Removed from likes', 'info');
+          }
+          // update UI
+          renderRecipes(allRecipes);
+        }).catch(err => {
+          console.error('Like API network error', err);
+          showNotification('Network error while liking recipe', 'error');
+        });
+        return;
+      }
 
-      // Get existing likes from localStorage
+      // Guest fallback: localStorage-only
       let likes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
-      
-      // Check if already liked
       const isLiked = likes.some(r => (r._id || r.id) === (recipe._id || recipe.id));
-      
       if (isLiked) {
-        // Remove from likes
         likes = likes.filter(r => (r._id || r.id) !== (recipe._id || recipe.id));
         showNotification('Removed from likes', 'info');
       } else {
-        // Add to likes
         likes.push(recipe);
         showNotification('Recipe liked! ❤️', 'success');
       }
-      
-      // Save back to localStorage
       localStorage.setItem('likedRecipes', JSON.stringify(likes));
-      
-      // Re-render recipes to update button states
       renderRecipes(allRecipes);
     }
 
