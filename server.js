@@ -7,7 +7,10 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// Allow larger JSON payloads for avatar data URLs (base64). Default is small; bump to 10MB.
+app.use(express.json({ limit: '10mb' }));
+// Also parse URL-encoded bodies with the same limit (in case forms are used)
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(express.static(__dirname)); // serve your static files
 
@@ -57,6 +60,24 @@ try {
   app.use('/api/search', searchRouter);
 } catch (e) {
   console.warn('Could not load ./api/search. Search routes will be unavailable.');
+}
+
+// Mount debug router (small testing helpers)
+try {
+  const debugRouter = require('./api/debug');
+  app.use('/api/debug', debugRouter);
+  console.log('✅ Debug router loaded');
+} catch (e) {
+  console.warn('Could not load ./api/debug:', e.message);
+}
+
+// mount OTP router for email verification (uses env COOKSMART_EMAIL / COOKSMART_EMAIL_PASSWORD)
+try {
+  const otpRouter = require('./api/otp');
+  app.use('/api/otp', otpRouter);
+  console.log('✅ OTP router loaded');
+} catch (e) {
+  console.warn('Could not load ./api/otp:', e.message);
 }
 
 try {

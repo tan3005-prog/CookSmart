@@ -30,10 +30,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // Avatar: store as a data URL or hosted image URL
+  avatar: {
+    type: String,
+    default: ''
+  },
   
   contactNumber: {
     type: String,
     default: ''
+  },
+  gender: {
+    type: String,
+    enum: ['male','female','other',''],
+    default: ''
+  },
+  dob: {
+    type: Date,
+    default: null
   },
   
   likedRecipes: [{

@@ -4,7 +4,11 @@ class LoginModal {
     this.isLoggedIn = this.checkLoginStatus();
     this.currentMode = 'login'; // 'login' or 'signup'
     this.redirectUrl = null; // Store redirect URL after login
-    this.init();
+  // signup verification state
+  this.signupOtpVerified = false;
+  this.signupPendingEmail = null;
+
+  this.init();
   // start session monitor to auto-logout on expiry
   this.startSessionMonitor();
   }
@@ -119,9 +123,23 @@ class LoginModal {
                   </div>
                 </div>
                 
-                <div class="login-form-group">
+                <div class="login-form-group signup-verify-group" style="position:relative;">
                   <label for="signup-email">Email</label>
-                  <input type="email" id="signup-email" placeholder="Enter your email" required>
+                  <div class="signup-verify-container" style="position:relative;">
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                    <button type="button" id="signup-verify-btn" class="signup-verify-btn verify-text pending" aria-label="Verify email">Verify</button>
+                  </div>
+                  <div id="signup-verify-status" class="login-small-text" style="margin-top:6px;color:#333;"></div>
+                </div>
+
+                <!-- Signup OTP inline section (hidden until Verify pressed) placed directly under email -->
+                <div id="signup-otp-section" class="login-form-group form-group" style="display:none;margin-top:8px;position:relative;">
+                  <label for="signup-otp-input">Enter OTP</label>
+                  <div class="signup-otp-container" style="position:relative;">
+                    <input type="text" id="signup-otp-input" placeholder="6-digit code" style="width:100%;padding-right:120px;box-sizing:border-box;border-radius:0;">
+                    <button type="button" id="signup-otp-verify-btn" class="signup-verify-btn otp-verify-btn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);height:36px;padding:6px 10px;border-radius:4px;">Verify OTP</button>
+                  </div>
+                  <div id="signup-otp-message" class="login-small-text" style="margin-top:6px;color:#333;"></div>
                 </div>
                 
                 <div class="login-form-group login-password-group">
@@ -148,6 +166,7 @@ class LoginModal {
                     </button>
                   </div>
                 </div>
+                <!-- duplicate OTP section removed -->
                 
                 <button type="submit" class="login-btn">Sign Up</button>
               </form>
@@ -236,9 +255,37 @@ class LoginModal {
       this.clearErrors();
     });
 
+    // reset verification if user edits the email after verifying
+    document.getElementById('signup-email').addEventListener('input', (e) => {
+      // if already verified, do not allow editing/clearing
+      if (this.signupOtpVerified) return;
+      const val = e.target.value.trim();
+      // if email changed away from the pending verified one or removed, clear verification
+      if (!val || val !== this.signupPendingEmail) {
+        this.clearSignupVerification();
+      }
+    });
+
     document.getElementById('signup-password').addEventListener('focus', () => {
       this.clearErrors();
     });
+
+    // Signup verify button and OTP verify inside modal
+    const signupVerifyBtn = document.getElementById('signup-verify-btn');
+    if (signupVerifyBtn) {
+      signupVerifyBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await this.handleSignupSendOtp();
+      });
+    }
+
+    const signupOtpVerifyBtn = document.getElementById('signup-otp-verify-btn');
+    if (signupOtpVerifyBtn) {
+      signupOtpVerifyBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await this.handleSignupVerifyOtp();
+      });
+    }
   }
 isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -346,6 +393,12 @@ if (!this.isValidEmail(email)) {
       return;
     }
 
+    // require email verification before allowing signup
+    if (!this.signupOtpVerified) {
+      this.showError('signup-error', 'Please verify your email before signing up. Click Verify next to the email field.');
+      return;
+    }
+
     const btn = e.target.querySelector('.login-btn');
     btn.classList.add('loading');
     btn.textContent = 'Creating account...';
@@ -394,6 +447,130 @@ if (!this.isValidEmail(email)) {
     }
   }
 
+  // Send OTP for signup email
+  async handleSignupSendOtp() {
+    const email = document.getElementById('signup-email').value.trim();
+    const statusEl = document.getElementById('signup-verify-status');
+    if (!email) {
+      this.showError('signup-error', 'Please enter your email first');
+      return;
+    }
+    if (!this.isValidEmail(email)) {
+      this.showError('signup-error', 'Please enter a valid email address');
+      return;
+    }
+
+    // if already verified, don't resend OTP
+    if (this.signupOtpVerified) {
+      // keep UI as verified and do not send another OTP
+      const verifyBtn = document.getElementById('signup-verify-btn');
+      if (verifyBtn) {
+        verifyBtn.classList.add('verified');
+        verifyBtn.disabled = true;
+        verifyBtn.style.pointerEvents = 'none';
+      }
+      statusEl.textContent = '';
+      return;
+    }
+
+    statusEl.textContent = 'Sending OTP...';
+    try {
+      const res = await fetch('/api/otp/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Send signup OTP failed:', data);
+        this.showError('signup-error', data.error || 'Failed to send OTP');
+        statusEl.textContent = '';
+        return;
+      }
+
+  // show OTP input
+  document.getElementById('signup-otp-section').style.display = 'block';
+      this.signupPendingEmail = email;
+      this.signupOtpVerified = false;
+      // update verify button appearance
+      const verifyBtn = document.getElementById('signup-verify-btn');
+      if (verifyBtn) {
+  verifyBtn.classList.remove('verified');
+  verifyBtn.classList.remove('resend');
+  // after sending OTP, show 'Resend' in black
+  verifyBtn.classList.add('resend');
+  verifyBtn.textContent = 'Resend';
+      }
+  // do not show "OTP sent" message per UX request
+  statusEl.textContent = '';
+    } catch (err) {
+      console.error('Error sending signup OTP', err);
+      this.showError('signup-error', 'Network error while sending OTP');
+      statusEl.textContent = '';
+    }
+  }
+
+  // Verify signup OTP
+  async handleSignupVerifyOtp() {
+    const code = document.getElementById('signup-otp-input').value.trim();
+    const msgEl = document.getElementById('signup-otp-message');
+    if (!code) {
+      this.showError('signup-error', 'Please enter the OTP');
+      return;
+    }
+    if (!this.signupPendingEmail) {
+      this.showError('signup-error', 'No pending email to verify. Please click Verify first.');
+      return;
+    }
+
+  msgEl.textContent = 'Verifying...';
+    try {
+      const res = await fetch('/api/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: this.signupPendingEmail, code })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Signup OTP verify failed:', data);
+        this.showError('signup-error', data.error || 'OTP verification failed');
+        msgEl.textContent = '';
+        return;
+      }
+
+      this.signupOtpVerified = true;
+  this.signupOtpVerified = true;
+  msgEl.textContent = 'Email verified ✅';
+      // update verify button style and text
+      const verifyBtn = document.getElementById('signup-verify-btn');
+      if (verifyBtn) {
+        verifyBtn.classList.remove('pending');
+        verifyBtn.classList.remove('resend');
+        verifyBtn.classList.add('verified');
+        verifyBtn.textContent = 'Verified';
+        verifyBtn.disabled = true;
+        verifyBtn.style.pointerEvents = 'none';
+      }
+      // hide OTP input after short delay so user sees success
+      setTimeout(() => {
+        const otpSection = document.getElementById('signup-otp-section');
+        if (otpSection) otpSection.style.display = 'none';
+        // clear OTP input
+        const otpInput = document.getElementById('signup-otp-input');
+        if (otpInput) otpInput.value = '';
+        // make the email input readonly once verified
+        const emailInput = document.getElementById('signup-email');
+        if (emailInput) {
+          emailInput.setAttribute('readonly', 'true');
+        }
+      }, 700);
+    } catch (err) {
+      console.error('Error verifying signup OTP', err);
+      this.showError('signup-error', 'Network error while verifying OTP');
+      msgEl.textContent = '';
+    }
+  }
+
   handleGoogleLogin() {
     // Placeholder for Google OAuth
     this.showError('login-error', 'Google login coming soon!');
@@ -426,6 +603,36 @@ if (!this.isValidEmail(email)) {
 
   closeModal() {
     document.getElementById('login-modal-overlay').classList.remove('active');
+  // reset ephemeral signup verification state when modal closes
+  try { this.clearSignupVerification(); } catch(e) {}
+  }
+
+  // Clear signup verification UI/state
+  clearSignupVerification() {
+    this.signupOtpVerified = false;
+    this.signupPendingEmail = null;
+    // reset verify button
+    const verifyBtn = document.getElementById('signup-verify-btn');
+    if (verifyBtn) {
+      verifyBtn.classList.remove('verified');
+      verifyBtn.classList.remove('pending');
+      verifyBtn.textContent = 'Verify';
+      verifyBtn.disabled = false;
+      verifyBtn.style.pointerEvents = '';
+    }
+    // hide OTP section
+    const otpSection = document.getElementById('signup-otp-section');
+    if (otpSection) otpSection.style.display = 'none';
+    // clear any status text
+    const statusEl = document.getElementById('signup-verify-status');
+    if (statusEl) statusEl.textContent = '';
+    const msgEl = document.getElementById('signup-otp-message');
+    if (msgEl) msgEl.textContent = '';
+    // make sure email input is editable again
+    const emailInput = document.getElementById('signup-email');
+    if (emailInput) {
+      emailInput.removeAttribute('readonly');
+    }
   }
 
   logout() {
@@ -495,15 +702,11 @@ if (!this.isValidEmail(email)) {
       profileItem.classList.add('profile-menu-item');
       
       // Use a profile icon (SVG) instead of name
+      // Determine avatar source (user-provided or static fallback)
+      const avatarSrc = (user && user.avatar) ? user.avatar : '/images/image-avtar.jpg';
       profileItem.innerHTML = `
         <a href="#" class="profile-link" title="${user.email}">
-          <span class="profile-avatar-icon" style="display:inline-block; vertical-align:middle;">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="16" fill="#764ba2"/>
-              <circle cx="16" cy="13" r="6" fill="#fff"/>
-              <ellipse cx="16" cy="24" rx="9" ry="6" fill="#fff"/>
-            </svg>
-          </span>
+          <img src="${avatarSrc}" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;border:1px solid rgba(0,0,0,0.06);" onerror="this.onerror=null;this.src='/images/image-avtar.jpg'" />
           <svg class="profile-dropdown-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M7 10l5 5 5-5z" fill="currentColor"/>
           </svg>

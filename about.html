@@ -244,7 +244,8 @@
             text-align: center;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             transition: height 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s;
-            height: 420px;
+            /* reduced height to a more compact size */
+            height: 380px;
         }
 
         .team-member.stretch {
@@ -254,8 +255,9 @@
         }
         
         .member-avatar {
-            width: 130px;
-            height: 130px;
+            /* increased avatar container size */
+            width: 170px;
+            height: 170px;
             background: linear-gradient(135deg, #e7d8f6 0%, #c8b3e0 100%);
             border-radius: 50%;
             margin: 0 auto 25px;
@@ -269,6 +271,15 @@
             cursor: pointer;
             transition: transform 0.2s ease;
         }
+
+        /* Ensure images inside avatar container fill it and override any inline sizing */
+        .member-avatar img{
+            width:100% !important;
+            height:100% !important;
+            object-fit:cover !important;
+            display:block !important;
+            border-radius:50% !important;
+        }
         
         .member-avatar:hover {
             transform: scale(1.05);
@@ -278,93 +289,7 @@
             transform: scale(0.98);
         }
         
-        .contact-btn {
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #e7d8f6 0%, #c8b3e0 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 216, 246, 0.4);
-        }
-        
-        .contact-btn:hover {
-            background: linear-gradient(135deg, #c8b3e0 0%, #9b7ec4 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 216, 246, 0.6);
-        }
-        
-        .contact-links {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            animation: slideDown 0.3s ease;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .contact-links.active {
-            display: block;
-        }
-        
-        .contact-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            background: white;
-            border-radius: 10px;
-            text-decoration: none;
-            color: #2d3436;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .contact-link:last-child {
-            margin-bottom: 0;
-        }
-        
-        .contact-link:hover {
-            background: #e7d8f6;
-            border-color: #c8b3e0;
-            transform: translateX(5px);
-        }
-        
-        .contact-icon {
-            width: 35px;
-            height: 35px;
-            background: linear-gradient(135deg, #e7d8f6 0%, #c8b3e0 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            font-size: 1.1rem;
-        }
-        
-        .contact-link:hover .contact-icon {
-            background: linear-gradient(135deg, #c8b3e0 0%, #9b7ec4 100%);
-        }
-        
-        .contact-link span {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
+    /* Contact buttons and links removed */
         
         .team-member h3 {
             font-size: 1.4rem;
@@ -463,21 +388,7 @@
                     </div>
                     <h3>Tanvi Sonune</h3>
                     <div class="role">Software Engineer</div>
-                    <button class="contact-btn" onclick="toggleContacts('contact4')">Contact</button>
-                    <div id="contact4" class="contact-links">
-                        <a href="https://www.linkedin.com/in/tanvi-sonune-0a29a329a" class="contact-link" target="_blank">
-                            <div class="contact-icon">💼</div>
-                            <span>LinkedIn</span>
-                        </a>
-                        <a href="mailto:tanvee3005@gmail.com" class="contact-link">
-                            <div class="contact-icon">✉</div>
-                            <span>Email</span>
-                        </a>
-                        <a href="https://www.instagram.com/tanvi_s30" class="contact-link" target="_blank">
-                            <div class="contact-icon">💬</div>
-                            <span>Instagram</span>
-                        </a>
-                    </div>
+                    <!-- contact removed -->
                 </div>
                 <div class="team-member">
                     <div class="member-avatar" style="background: none; padding: 0; overflow: hidden;">
@@ -485,21 +396,7 @@
                     </div>
                     <h3>Akshata Biradar</h3>
                     <div class="role">Software Engineer</div>
-                    <button class="contact-btn" onclick="toggleContacts('contact2')">Contact</button>
-                    <div id="contact2" class="contact-links">
-                        <a href="https://linkedin.com/in/akshata-biradar-53a82327b" class="contact-link" target="_blank">
-                            <div class="contact-icon">💼</div>
-                            <span>LinkedIn</span>
-                        </a>
-                        <a href="mailto:biradarakshata81@gmail.com" class="contact-link">
-                            <div class="contact-icon">✉</div>
-                            <span>Email</span>
-                        </a>
-                        <a href="https://instagram.com/aksh_ata2305" class="contact-link" target="_blank">
-                            <div class="contact-icon">💬</div>
-                            <span>Instagram</span>
-                        </a>
-                    </div>
+                    <!-- contact removed -->
                 </div>
                 <div class="team-member">
                     <div class="member-avatar" style="background: none; padding: 0; overflow: hidden;">
@@ -507,21 +404,7 @@
                     </div>
                     <h3>Pranjal Manjarekar</h3>
                     <div class="role">Software Engineer</div>
-                    <button class="contact-btn" onclick="toggleContacts('contact3')">Contact</button>
-                    <div id="contact3" class="contact-links">
-                        <a href="https://www.linkedin.com/in/pranjal-manjarekar-71b042312" class="contact-link" target="_blank">
-                            <div class="contact-icon">💼</div>
-                            <span>LinkedIn</span>
-                        </a>
-                        <a href="mailto:pranjalmanjarekar050905@gmail.com" class="contact-link">
-                            <div class="contact-icon">✉</div>
-                            <span>Email</span>
-                        </a>
-                        <a href="https://instagram.com/pranjal_5905" class="contact-link" target="_blank">
-                            <div class="contact-icon">💬</div>
-                            <span>Instagram</span>
-                        </a>
-                    </div>
+                    <!-- contact removed -->
                 </div>
                 <div class="team-member">
                     <div class="member-avatar" style="background: none; padding: 0; overflow: hidden;">
@@ -529,20 +412,7 @@
                     </div>
                     <h3>Ketan Agrawal</h3>
                     <div class="role">Software Engineer</div>
-                    <button class="contact-btn" onclick="toggleContacts('contact1')">Contact</button>
-                    <div id="contact1" class="contact-links">
-                        <a href="https://linkedin.com/in/ketan-agrawal-2a4a4537b" class="contact-link" target="_blank">
-                            <div class="contact-icon">💼</div>
-                            <span>LinkedIn</span>
-                        </a>
-                        <a href="mailto:agrawalke001@gmail.com" class="contact-link">
-                            <div class="contact-icon">✉</div>
-                            <span>Email</span>
-                        </a>
-                        <a href="https://instagram.com/ketan_agrawal_19" class="contact-link" target="_blank">
-                            <div class="contact-icon">💬</div>
-                            <span>Instagram</span>
-                        </a>
+                    <!-- contact removed -->
                         </div>
                     </div>
                 </div>
@@ -590,35 +460,7 @@
                 }, pauseBetweenLines);
             });
         })();
-        function toggleContacts(id) {
-            const element = document.getElementById(id);
-            const allContacts = document.querySelectorAll('.contact-links');
-            const allCards = document.querySelectorAll('.team-member');
-            // Find the card containing this contact panel
-            let cardToStretch = null;
-            allCards.forEach(card => {
-                if (card.contains(element)) {
-                    cardToStretch = card;
-                } else {
-                    card.classList.remove('stretch');
-                }
-            });
-            // Close all other contact sections
-            allContacts.forEach(contact => {
-                if (contact.id !== id) {
-                    contact.classList.remove('active');
-                }
-            });
-            // Toggle the clicked one
-            const isActive = element.classList.toggle('active');
-            if (cardToStretch) {
-                if (isActive) {
-                    cardToStretch.classList.add('stretch');
-                } else {
-                    cardToStretch.classList.remove('stretch');
-                }
-            }
-        }
+    // Contact UI removed; toggleContacts function removed
     </script>
     <footer class="footer">
     <p>&copy; 2026 CookSmart. Made with ❤️ by Team CookSmart</p>
